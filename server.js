@@ -29,38 +29,54 @@ app.use("/api/job", jobRoutes);
 
 app.use("/api/chatbot", chatbotRoutes);
 
-app.use(
-  "/api/notifications",
-  notificationRoutes
-);
+app.use("/api/notifications", notificationRoutes);
 
 // =====================================================
-// MONGODB CONNECTION
-// =====================================================
-
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("MongoDB Connected Successfully");
-  })
-  .catch((err) => {
-    console.log("Database Error:", err);
-  });
-
-// =====================================================
-// TEST ROUTE
+// TEST / HEALTH ROUTE
 // =====================================================
 
 app.get("/", (req, res) => {
-  res.send("Worker Platform API Running");
+  res.status(200).send("Worker Platform API Running");
+});
+
+app.get("/health", (req, res) => {
+  res.status(200).json({
+    status: "OK",
+    service: "WorkHub Backend"
+  });
 });
 
 // =====================================================
-// SERVER
+// MONGODB CONNECTION + SERVER
 // =====================================================
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server running on port ${PORT}`);
+async function startServer() {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+
+    console.log("MongoDB Connected Successfully");
+
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error("Database Error:", err);
+    process.exit(1);
+  }
+}
+
+startServer();
+
+// =====================================================
+// GRACEFUL SHUTDOWN
+// =====================================================
+
+process.on("SIGTERM", async () => {
+  console.log("SIGTERM received. Shutting down...");
+
+  await mongoose.connection.close();
+
+  process.exit(0);
 });
