@@ -7,8 +7,6 @@ const {
   updateAvailability,
   updateLocation,
   loginUser,
-  sendOtp,
-  verifyOtp,
   getWorkers,
   getPublicWorkers,
   getCustomers,
@@ -18,11 +16,6 @@ const {
 const {
   verifyToken
 } = require("../middleware/authMiddleware");
-
-// =====================================================
-// SEND OTP
-// =====================================================
-
 
 
 // =====================================================
