@@ -2,65 +2,92 @@ const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema(
   {
+    // User's full name
     name: {
       type: String,
-      required: true
+      required: true,
+      trim: true
     },
 
+    // Email address
     email: {
       type: String,
       required: true,
-      unique: true
+      unique: true,
+      lowercase: true,
+      trim: true
     },
 
+    // Phone number
     phone: {
-      type: String
+      type: String,
+      trim: true
     },
 
+    // Hashed password - excluded from normal queries
     password: {
       type: String,
-      required: true
+      required: true,
+      select: false
     },
 
+    // User role
     role: {
       type: String,
       enum: ["admin", "worker", "customer"],
       required: true
     },
 
-    skills: {
-      type: [String]
+    // Email verification status
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+      required: true
     },
 
+    // Worker's skills
+    skills: {
+      type: [String],
+      default: []
+    },
+
+    // User's geographical location
     location: {
       type: {
         type: String,
         enum: ["Point"]
       },
-
       coordinates: {
         type: [Number]
       }
     },
 
+    // Worker availability
     isAvailable: {
       type: Boolean,
       default: true
     },
 
+    // User rating
     rating: {
       type: Number,
-      default: 4
+      default: 4,
+      min: 0,
+      max: 5
     },
 
+    // Work experience in years
     experience: {
       type: Number,
-      default: 0
+      default: 0,
+      min: 0
     },
 
+    // Number of completed jobs
     completedJobs: {
       type: Number,
-      default: 0
+      default: 0,
+      min: 0
     }
   },
   {
@@ -68,11 +95,9 @@ const userSchema = new mongoose.Schema(
   }
 );
 
+// Geospatial index for location-based worker matching
 userSchema.index({
   location: "2dsphere"
 });
 
-module.exports = mongoose.model(
-  "User",
-  userSchema
-);
+module.exports = mongoose.model("User", userSchema);

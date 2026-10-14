@@ -261,30 +261,28 @@ const calculateRatingScore = (
 // Closer worker = higher score
 // =====================================================
 
-const calculateDistanceScore = (
-  distanceKm
-) => {
+const calculateDistanceScore = (distanceKm) => {
+  const distance = Number(distanceKm);
 
-  if (
-    distanceKm <= 1
-  ) {
-    return 100;
-  }
-
-  if (
-    distanceKm >= 20
-  ) {
+  // Invalid distances receive no points.
+  if (!Number.isFinite(distance) || distance < 0) {
     return 0;
   }
 
-  return Math.max(
-    0,
-    Math.round(
-      100 -
-      (distanceKm / 20) * 100
-    )
-  );
+  // Within 1 km: maximum score.
+  if (distance <= 1) {
+    return 100;
+  }
 
+  // At 20 km or farther: zero points.
+  if (distance >= 20) {
+    return 0;
+  }
+
+  // Gradually decrease the score between 1 km and 20 km.
+  return Math.round(
+    ((20 - distance) / 19) * 100
+  );
 };
 
 
@@ -2402,35 +2400,33 @@ exports.analyzeWorkersWithAI = async (
       // Completed     5%
       // ------------------------------------------------
 
-      const completedJobsScore =
-        Math.min(
+     // ============================================
+// COMPLETED JOBS SCORE
+// Maximum score: 100
+// ============================================
 
-          100,
+const completedJobsScore = Math.min(
+  100,
+  Number(worker.completedJobs || 0) * 2
+);
 
-          Number(
-            worker.completedJobs ||
-            0
-          ) * 2
+// ============================================
+// FINAL AI SCORE
+// Skill Match: 40%
+// Distance: 30%
+// Rating: 10%
+// Experience: 5%
+// Completed Jobs: 5%
+// Availability: 10%
+// ============================================
 
-        );
-
-
-      const aiScore =
-
-        skillMatch * 0.30 +
-
-        availabilityScore * 0.20 +
-
-        distanceScore * 0.15 +
-
-        ratingScore * 0.10 +
-
-        experienceScore * 0.10 +
-
-        workloadScore * 0.10 +
-
-        completedJobsScore * 0.05;
-
+const aiScore =
+  skillMatch * 0.40 +
+  distanceScore * 0.30 +
+  ratingScore * 0.10 +
+  experienceScore * 0.05 +
+  completedJobsScore * 0.05 +
+  availabilityScore * 0.10;
 
       rankedWorkers.push({
 
@@ -2944,25 +2940,23 @@ exports.autoAssignWorker = async (
         );
 
 
-      // ------------------------------------------------
-      // FINAL AI SCORE
-      // ------------------------------------------------
+     // ============================================
+// FINAL AI SCORE
+// Skill Match: 40%
+// Distance: 30%
+// Rating: 10%
+// Experience: 5%
+// Completed Jobs: 5%
+// Availability: 10%
+// ============================================
 
-      const aiScore =
-
-        skillMatch * 0.30 +
-
-        availabilityScore * 0.20 +
-
-        distanceScore * 0.15 +
-
-        ratingScore * 0.10 +
-
-        experienceScore * 0.10 +
-
-        workloadScore * 0.10 +
-
-        completedJobsScore * 0.05;
+const aiScore =
+  skillMatch * 0.40 +
+  distanceScore * 0.30 +
+  ratingScore * 0.10 +
+  experienceScore * 0.05 +
+  completedJobsScore * 0.05 +
+  availabilityScore * 0.10;
 
 
       rankedWorkers.push({
