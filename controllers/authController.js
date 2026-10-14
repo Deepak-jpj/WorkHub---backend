@@ -688,35 +688,38 @@ exports.loginUser = async (req, res) => {
       });
     }
 
-    const user =
-      await User.findOne({
-        email: {
-          $regex: `^${email}$`,
-          $options: "i"
-        }
-      });
+   const user = await User.findOne({
+  email: {
+    $regex: `^${email}$`,
+    $options: "i"
+  }
+}).select("+password");
 
-    if (!user) {
-      return res.status(400).json({
-        success: false,
-        message: "User not found"
-      });
-    }
+if (!user) {
+  return res.status(400).json({
+    success: false,
+    message: "User not found."
+  });
+}
 
-    const isMatch =
-      await bcrypt.compare(
-        password,
-        user.password
-      );
+if (user.isEmailVerified !== true) {
+  return res.status(403).json({
+    success: false,
+    message: "Please verify your email before logging in."
+  });
+}
 
-    if (!isMatch) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Invalid credentials"
-      });
-    }
+const isMatch = await bcrypt.compare(
+  password,
+  user.password
+);
 
+if (!isMatch) {
+  return res.status(400).json({
+    success: false,
+    message: "Invalid credentials."
+  });
+}
     const token =
       jwt.sign(
         {
